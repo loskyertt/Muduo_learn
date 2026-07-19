@@ -13,19 +13,17 @@ set(CMAKE_C_STANDARD 11)
 # 开启 gtest_discover_tests 注册测试用例依赖
 enable_testing()
 
-# 脚本
-# include(cmake/check_arch.cmake)
-include(cmake/set_muduo.cmake)
-include(cmake/set_g3log.cmake)
-
 # 添加第三方库
-find_package(GTest REQUIRED)
-find_package(Boost REQUIRED CONFIG)
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/3rdparty/g3log-2.6")
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/3rdparty/muduo-2.0.2")
 
-add_subdirectory(3rdparty/muduo-2.0.2)
-add_subdirectory(3rdparty/g3log-2.6)
+find_package(GTest REQUIRED CONFIG)
+find_package(Boost REQUIRED CONFIG)
+find_package(g3log REQUIRED CONFIG)
+find_package(muduo REQUIRED CONFIG)
+
+include(cmake/find_target.cmake)
 
 # 子模块
 add_subdirectory(src/utility)
-# add_subdirectory(tests)
 add_subdirectory(examples)
