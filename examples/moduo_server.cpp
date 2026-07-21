@@ -6,12 +6,11 @@
  * @Desc    :   基于 muduo 网络库开发服务器程序
  */
 
-#include "muduo/net/TcpServer.h"
-#include "muduo/net/Callbacks.h"
-#include "muduo/net/EventLoop.h"
-#include "muduo/net/InetAddress.h"
+#include <muduo/net/TcpServer.h>
+#include <muduo/net/EventLoop.h>
 
 #include <functional>
+#include <iostream>
 
 class ChatServer {
  private:
@@ -19,17 +18,48 @@ class ChatServer {
   muduo::net::EventLoop *m_loop = nullptr;  // 创建 EventLoop 事件循环的指针
 
  public:
-  ChatServer(muduo::net::EventLoop *loop,         // 事件循环
-      const muduo::net::InetAddress &listenAddr,  // IP + Port
-      const std::string &nameArg                  // 服务器名称
-      )
-      : m_server(loop, listenAddr, nameArg) {
-    m_server.setConnectionCallback(std::bind(&ChatServer::onConnection, this, std::placeholders::_1));
+  ChatServer(muduo::net::EventLoop *loop,                 // 事件循环
+             const muduo::net::InetAddress &listen_addr,  // IP + Port
+             const std::string &name_arg                  // 服务器名称
+             )
+      : m_server(loop, listen_addr, name_arg) {
+    m_server.setConnectionCallback(std::bind(&ChatServer::on_connection, this, std::placeholders::_1));
+
+    m_server.setMessageCallback(
+        std::bind(&ChatServer::on_message, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+    // 设置服务端的线程数：1 IO 线程 + 3 worker 线程
+    m_server.setThreadNum(4);
   }
+
+  // 开启事件循环
+  void start() { m_server.start(); }
 
  private:
   // 专门处理用户的连接和断开
-  void onConnection(const muduo::net::TcpConnectionPtr &) {}
+  void on_connection(const muduo::net::TcpConnectionPtr &conn) {
+    if (conn->connected()) {
+      std::cout << conn->peerAddress().toIpPort() << "->" << conn->localAddress().toIpPort() << " state: online"
+                << std::endl;
+    } else {
+      std::cout << conn->peerAddress().toIpPort() << "->" << conn->localAddress().toIpPort() << " state: offline"
+                << std::endl;
+      conn->shutdown();
+    }
+  }
+
+  // 专门处理用户的读写事件
+  void on_message(const muduo::net::TcpConnectionPtr &conn, muduo::net::Buffer *buffer, muduo::Timestamp time) {
+    std::string buf = buffer->retrieveAllAsString();
+    std::cout << "recv data: " << buf << " time: " << time.toString() << std::endl;
+    conn->send(buf);
+  }
 };
 
-int main() {}
+int main() {
+  muduo::net::EventLoop loop;
+  muduo::net::InetAddress addr("127.0.0.1", 6000);
+  ChatServer server(&loop, addr, "ChatServer");
+  server.start();
+  loop.loop();  // epoll_wait 以阻塞方式等待新用户连接或者已连接用户的读写事件等
+}

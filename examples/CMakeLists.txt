@@ -9,4 +9,5 @@ target_link_libraries(moduo_server
     pthread        # muduo 依赖线程库
     rt             # 部分 Linux 系统需要链接实时库
     Boost::headers
+    g3log
 )
