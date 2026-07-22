@@ -13,20 +13,17 @@
 #include <iostream>
 
 class ChatServer {
- private:
-  muduo::net::TcpServer m_server;           // 创建 tcp_server 对象
-  muduo::net::EventLoop *m_loop = nullptr;  // 创建 EventLoop 事件循环的指针
-
- public:
+public:
   ChatServer(muduo::net::EventLoop *loop,                 // 事件循环
              const muduo::net::InetAddress &listen_addr,  // IP + Port
              const std::string &name_arg                  // 服务器名称
              )
       : m_server(loop, listen_addr, name_arg) {
-    m_server.setConnectionCallback(std::bind(&ChatServer::on_connection, this, std::placeholders::_1));
+    m_server.setConnectionCallback([this](const muduo::net::TcpConnectionPtr &conn) { this->on_connection(conn); });
 
-    m_server.setMessageCallback(
-        std::bind(&ChatServer::on_message, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_server.setMessageCallback([this](const muduo::net::TcpConnectionPtr &conn,
+                                       muduo::net::Buffer *buffer,
+                                       muduo::Timestamp time) { this->on_message(conn, buffer, time); });
 
     // 设置服务端的线程数：1 IO 线程 + 3 worker 线程
     m_server.setThreadNum(4);
@@ -35,7 +32,7 @@ class ChatServer {
   // 开启事件循环
   void start() { m_server.start(); }
 
- private:
+private:
   // 专门处理用户的连接和断开
   void on_connection(const muduo::net::TcpConnectionPtr &conn) {
     if (conn->connected()) {
@@ -54,6 +51,10 @@ class ChatServer {
     std::cout << "recv data: " << buf << " time: " << time.toString() << std::endl;
     conn->send(buf);
   }
+
+private:
+  muduo::net::TcpServer m_server;           // 创建 tcp_server 对象
+  muduo::net::EventLoop *m_loop = nullptr;  // 创建 EventLoop 事件循环的指针
 };
 
 int main() {
