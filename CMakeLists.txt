@@ -26,4 +26,5 @@ include(cmake/find_target.cmake)
 
 # 子模块
 add_subdirectory(src/utility)
+add_subdirectory(src/mymoduo)
 add_subdirectory(examples)
