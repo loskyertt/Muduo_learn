@@ -69,7 +69,8 @@ MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
 ObjCSpaceAfterProperty: false
 ObjCSpaceBeforeProtocolList: true
-PointerAlignment: Right
+PointerAlignment: Left
+ReferenceAlignment: Left
 ReflowComments: IndentOnly
 SeparateDefinitionBlocks: Always   # Only support since clang-format 14
 SortIncludes: Never # 禁用 include 头文件格式化时自动排序
