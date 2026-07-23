@@ -1,5 +1,5 @@
 /**
- * @File    :   src/utility/include/singleton.h
+ * @File    :   src/utility/include/base/singleton.h
  * @Time    :   2026/04/17 15:27:31
  * @Author  :   loskyertt
  * @Github  :   https://github.com/loskyertt
@@ -10,6 +10,12 @@
 
 namespace sky::utility {
 
+/**
+ * @brief 单例模板，基类需要自己实现删除拷贝构造函数和赋值构造函数
+ * @tparam T 基类
+ *
+ * @details 使用时需要在基类中声明友元：friend class Singleton<ClassName>;
+ */
 template <typename T>
 class Singleton {
 public:

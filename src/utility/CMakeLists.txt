@@ -1,12 +1,25 @@
 # src/utility/CMakeLists.txt
 
+# utility::base 模块
+add_library(utility_base STATIC
+        impl/base/timestamp.cpp
+)
+target_include_directories(utility_base
+        PUBLIC include
+        PRIVATE impl
+)
+
+if (NOT TARGET utility::base)
+    add_library(utility::base ALIAS utility_base)
+endif ()
+
 # utility::logger 模块
 add_library(utility_logger STATIC
         impl/logger/logger.cpp
 )
 target_include_directories(utility_logger
-  PUBLIC  include
-  PRIVATE impl
+        PUBLIC include
+        PRIVATE impl
 )
 
 if (NOT TARGET utility::logger)
@@ -18,15 +31,15 @@ add_library(utility_g3log STATIC
         impl/logger/custom_file_sink.cpp
 )
 target_include_directories(utility_g3log
-        PUBLIC  include
+        PUBLIC include
         PRIVATE impl
 )
 
-if(g3log_FOUND)
+if (g3log_FOUND)
     target_link_libraries(utility_g3log PUBLIC g3log)
-else()
+else ()
     message(FATAL_ERROR "g3log not found, disable logging")
-endif()
+endif ()
 
 if (NOT TARGET utility::g3log)
     add_library(utility::g3log ALIAS utility_g3log)
